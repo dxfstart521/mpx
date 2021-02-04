@@ -71,6 +71,11 @@ module.exports = function (source) {
   const callback = (err) => {
     checkEntryDeps(() => {
       if (err) return nativeCallback(err)
+      if (mpx.mode === 'ali') {
+        let pages = pluginEntry.pages
+        pluginEntry.publicPages = pages
+        pluginEntry.pages = Object.values(pages)
+      }
       extract(JSON.stringify(pluginEntry), resourceName + '.json', 0)
       nativeCallback(null, defaultResultSource)
     })
