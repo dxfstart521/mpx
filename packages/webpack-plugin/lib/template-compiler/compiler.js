@@ -310,9 +310,10 @@ function decode (value) {
 const i18nFuncNames = ['\\$(t)', '\\$(tc)', '\\$(te)', '\\$(d)', '\\$(n)']
 const i18nWxsPath = normalize.lib('runtime/i18n.wxs')
 const i18nWxsLoaderPath = normalize.lib('wxs/wxs-i18n-loader.js')
-const i18nWxsRequest = i18nWxsLoaderPath + '!' + i18nWxsPath
+// 添加~前缀避免wxs绝对路径在存在projectRoot时被拼接为错误路径
+const i18nWxsRequest = '~' + i18nWxsLoaderPath + '!' + i18nWxsPath
 const i18nModuleName = '__i18n__'
-const stringifyWxsPath = normalize.lib('runtime/stringify.wxs')
+const stringifyWxsPath = '~' + normalize.lib('runtime/stringify.wxs')
 const stringifyModuleName = '__stringify__'
 
 const tagRES = /(\{\{(?:.|\n)+?\}\})(?!})/
@@ -633,7 +634,8 @@ function parseComponent (content, options) {
           }
         } else {
           if (tag === 'script') {
-            if (currentBlock.type === 'application/json' || currentBlock.name === 'json') {
+            // 支持type写为application\/json5
+            if (/^application\/json/.test(currentBlock.type) || currentBlock.name === 'json') {
               tag = 'json'
             }
           }
@@ -694,7 +696,7 @@ function parseComponent (content, options) {
       }
 
       // 对于<script name="json">的标签，传参调用函数，其返回结果作为json的内容
-      if (currentBlock.tag === 'script' && currentBlock.type !== 'application/json' && currentBlock.name === 'json') {
+      if (currentBlock.tag === 'script' && !/^application\/json/.test(currentBlock.type) && currentBlock.name === 'json') {
         text = mpxJSON.compileMPXJSONText({ source: text, defs, filePath: options.filePath })
       }
       currentBlock.content = text
